@@ -4,11 +4,12 @@ const mongodb = require('mongodb')
 
 module.exports = function (db) {
   router.get('/', async function (req, res, next) {
-    const page = req.query.page || 'all'
-    const limit = 2
-    const offset = page == 'all' ? 0 : (page - 1) * limit
+    const limit = req.query.display
+    const page = req.query.page || 1
+    
+    const offset = limit == 'all' ? 0 : (page - 1) * limit
     const searchParams = {}
-
+    
     // browse
     if (req.query.nama) {
       const regexName = new RegExp(`${req.query.nama}`, 'i');
@@ -23,16 +24,15 @@ module.exports = function (db) {
       const collection = db.collection('users');
 
       const totalData = await collection.find(searchParams).count()
-      const totalPages = page == 'all' ? 1 : Math.ceil(totalData / limit)
-      const limitation = page == 'all' ? {} : { limit, skip: offset }
-
+      const totalPages = limit == 'all' ? 1 : Math.ceil(totalData / limit)
+      const limitation = limit == 'all' ? {} : { limit: parseInt(limit), skip: offset }
       const users = await collection.find(searchParams, limitation).toArray();
       res.status(200).json({
         data: users,
         totalData,
         totalPages,
         display: limit,
-        currentPage: page == 'all' ? 'all' : parseInt(page)
+        page: parseInt(page)
       })
     } catch (err) {
       res.status(500).json({ message: "error ambil data" })
