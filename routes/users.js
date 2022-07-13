@@ -39,6 +39,17 @@ module.exports = function (db) {
     }
   });
 
+  router.get('/:id', async function (req, res, next) {
+    try {
+      const collection = db.collection('users');
+      const user = await collection.findOne({ _id: mongodb.ObjectId(req.params.id) })
+      res.status(200).json(user)
+    } catch (err) {
+      console.log(err)
+      res.status(500).json({ message: "error update data" })
+    }
+  });
+
   router.post('/', async function (req, res, next) {
     try {
       const collection = db.collection('users');

@@ -1,13 +1,242 @@
 <html>
 
 <head>
-  <title>Express</title>
+  <title>BREADS Apps</title>
+  <link rel="stylesheet" href="/fontawesome/css/all.css">
+  <link rel="stylesheet" href="/stylesheets/bootstrap.css">
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 
 <body>
-  <h1>Express</h1>
-  <p>Welcome to Express</p>
+  <div class="container">
+    <h1>Daftar User</h1>
+    <form id="form-search">
+      <div class="card">
+        <div class="card-header">
+          <h2>Form Pencarian</h2>
+        </div>
+
+        <div class="card-body">
+
+          <div class="row mb-3">
+            <label for="searchName" class="col-sm-2 col-form-label">Nama</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="searchName" name="searchName">
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="searchHeight" class="col-sm-2 col-form-label">Tinggi</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" id="searchHeight" name="searchHeight" step="any">
+            </div>
+          </div>
+          <fieldset class="row mb-3">
+            <legend class="col-form-label col-sm-2 pt-0">Sudah Menikah</legend>
+            <div class="col-sm-10">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="married" id="married1" value="false"
+                  checked>
+                <label class="form-check-label" for="married1">
+                  Jomblo
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="married" id="married2" value="true">
+                <label class="form-check-label" for="married2">
+                  Beruntung
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">Cari</button>
+        </div>
+      </div>
+    </form>
+
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Nama</th>
+          <th>Tinggi</th>
+          <th>Sudah Menikah</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <form id="form-user">
+      <input type="hidden" id="id" name="id" value="">
+      <div class="card">
+        <div class="card-header">
+          <h2>Form User</h2>
+        </div>
+
+        <div class="card-body">
+
+          <div class="row mb-3">
+            <label for="nama" class="col-sm-2 col-form-label">Nama</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="nama" name="nama" required>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <label for="tinggi" class="col-sm-2 col-form-label">Tinggi</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" id="tinggi" name="tinggi" step="any" required>
+            </div>
+          </div>
+          <fieldset class="row mb-3">
+            <legend class="col-form-label col-sm-2 pt-0">Sudah Menikah</legend>
+            <div class="col-sm-10">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sudahMenikah" id="sudahMenikah1" value="false"
+                  checked>
+                <label class="form-check-label" for="sudahMenikah1">
+                  Jomblo
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="sudahMenikah" id="sudahMenikah2" value="true">
+                <label class="form-check-label" for="sudahMenikah2">
+                  Beruntung
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </body>
+
+<script>
+  const readData = (params) => {
+    fetch(`http://localhost:3000/users?${new URLSearchParams(params).toString()}`).then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    }).then((response) => {
+      let html = ''
+      response.data.forEach((item, index) => {
+        html += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${item.nama}</td>
+          <td>${item.tinggi}</td>
+          <td>${item.sudahMenikah}</td>
+          <td>
+            <button type="button" class="btn btn-success btn-sm" onClick="editData('${item._id}')"><i class="fa-solid fa-pencil"></i></button>
+            <button type="button" class="btn btn-danger btn-sm" onClick="deleteData('${item._id}')"><i class="fa-solid fa-trash-can"></i></button>
+          </td>
+        </tr>
+        `
+      });
+      document.querySelector('table tbody').innerHTML = html
+    });
+  }
+
+  const saveData = (id, nama, tinggi, sudahMenikah) => {
+    if (id) {
+      fetch(`http://localhost:3000/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nama, tinggi, sudahMenikah })
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      }).then((response) => {
+        readData()
+        document.getElementById('id').value = ''
+        document.getElementById("form-user").reset();
+      });
+    } else {
+      fetch("http://localhost:3000/users", {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nama, tinggi, sudahMenikah })
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+      }).then((response) => {
+        readData()
+        document.getElementById("form-user").reset();
+      });
+    }
+  }
+
+  const editData = (id) => {
+    fetch(`http://localhost:3000/users/${id}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    }).then((response) => {
+      document.getElementById('id').value = response._id
+      document.getElementById('nama').value = response.nama
+      document.getElementById('tinggi').value = response.tinggi
+      document.querySelector(`input[value="${response.sudahMenikah}"]`).checked = true
+    });
+  }
+
+  const deleteData = (id) => {
+    fetch(`http://localhost:3000/users/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    }).then((response) => {
+      readData()
+    });
+  }
+
+  readData()
+
+  document.getElementById('form-user').addEventListener('submit', function (event) {
+    event.preventDefault();
+    const id = document.getElementById('id').value
+    const nama = document.getElementById('nama').value
+    const tinggi = document.getElementById('tinggi').value
+    const sudahMenikah = document.querySelector('input[name="sudahMenikah"]:checked').value
+    saveData(id, nama, tinggi, sudahMenikah)
+  })
+
+  document.getElementById('form-search').addEventListener('submit', function (event) {
+    event.preventDefault();
+    const nama = document.getElementById('searchName').value
+    const tinggi = document.getElementById('searchHeight').value
+    const sudahMenikah = document.querySelector('input[name="married"]:checked').value
+    readData({nama, tinggi, sudahMenikah})
+  })
+</script>
 
 </html>
